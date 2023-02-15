@@ -3,24 +3,43 @@ use std::fs::File;
 use csv::Writer;
 use scraper::{Html, Selector};
 use reqwest::blocking::Client;
+use serde::Deserialize;
 
 const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
+
+
+#[derive(Debug, PartialEq)]
+struct Data {
+    oper_day: String,
+    hour_ending: i32,
+    lz_houston: f32,
+    lz_south: f32,
+    lz_north: f32,
+    lz_west: f32,
+}
 
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Start");
 
-    // Get Response from ERCOT
+     // Get Response from ERCOT
     let client = Client::new();
     let response = client.get(URL)
         .send()?
         .text()?;
-
-      //Parse the data
-    let html = Html::parse_document(&response);
     
+      //Parse the data
+      let document = scraper::Html::parse_document(&response);
 
-    println!("HTML:\n{}", response);
+      //Select the data table using a CSS selector
+
+      let selector = Selector::parse("th").unwrap();
+
+      for element in document.select(&selector) {  //testing that th elements are being returned
+        println!("{}", element.text().collect::<String>());
+      }
+
+    //Store data
 
     //Prepare the output
 
