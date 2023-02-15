@@ -39,8 +39,20 @@ fn main() -> Result<(), Box<dyn Error>> {
       let element = document.select(&selector)
       .find(|th| th.text().collect::<String>() == "LZ_HOUSTON");
 
-      println!("{:?}", element.unwrap().text().collect::<String>()); //test 
+      
 
+      println!("{:?}", element.unwrap().text().collect::<String>()); //test 
+      
+      // iterate over each `tr` element
+      for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
+      // extract the twelfth `td` element using the `nth` function
+      let twelfth_td = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next();
+    
+      // print the text content of the 12th `td` element
+      if let Some(td) = twelfth_td {
+        println!("{}", td.text().collect::<String>());
+      }
+      }
 
     //Store data
 
