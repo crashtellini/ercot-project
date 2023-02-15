@@ -33,11 +33,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
       //Select the data table using a CSS selector
 
-      let selector = Selector::parse("th").unwrap();
+      let selector = Selector::parse("th.headerValueClass").unwrap();
+      
+       //Return only the desired element "i.e. LZ_HOUSTON"
+      let element = document.select(&selector)
+      .find(|th| th.text().collect::<String>() == "LZ_HOUSTON");
 
-      for element in document.select(&selector) {  //testing that th elements are being returned
-        println!("{}", element.text().collect::<String>());
-      }
+      println!("{:?}", element.unwrap().text().collect::<String>()); //test 
+
 
     //Store data
 
