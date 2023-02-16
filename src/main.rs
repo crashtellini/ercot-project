@@ -70,6 +70,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Some(td) = lz_west {
           lz_west_string = td.text().collect::<String>();
         }  
+         
+         // If all data points are empty strings, skip the row
+        if lz_houston_string.is_empty() && lz_south_string.is_empty() && lz_north_string.is_empty() && lz_west_string.is_empty() {
+            continue;
+        }
      
         ercot_data.push(ErcotData { 
             lz_houston: lz_houston_string, 
