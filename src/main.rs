@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
 
 
-#[derive(Debug, PartialEq, Serialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct ErcotData {
     #[serde(rename = "LZ_HOUSTON")]   // rename the fields to match html data
     lz_houston: String,
@@ -80,25 +80,19 @@ fn main() -> Result<(), Box<dyn Error>> {
      
       }
 
-      println!("{:#?}", ercot_data); // testing to make sure all data is being stored properly 
-
+      
+    // Write the data to a CSV file
    
-
-     //store data
-
-    
-
-    //Prepare the output
-
-    //Write the data to csv file
     let file = File::create("output.csv")?;
     let mut writer = Writer::from_writer(file);
-    
-    
-    writer.write_record(&["Column 1", "Column 2", "Value 1", "Value 2"])?; //test 
+
+    // Write the data rows
+    for data in ercot_data {
+    writer.serialize(data)?;
+    }
 
     writer.flush()?;
-    
-    println!("End");
+
+    println!("end");
     Ok(())
 }
