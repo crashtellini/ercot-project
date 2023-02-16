@@ -3,7 +3,7 @@ use std::fs::File;
 use csv::Writer;
 use scraper::{Html, Selector};
 use reqwest::blocking::Client;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
 
@@ -37,16 +37,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut lz_houston = String::new(); 
     let mut lz_south = String::new();
     let mut lz_north = String::new();
-    let mut_lz_west = String::new();
+    let mut lz_west = String::new();
     
+    
+    let mut ercot_data = Vec::new();
+
     // Iterate thorugh "td" elements to collect lz data points
-    
     for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
         let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next(); 
         let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();  
         let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next(); 
         let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next(); 
-    
         
         //create new variable to store data as string
         
@@ -69,13 +70,23 @@ fn main() -> Result<(), Box<dyn Error>> {
         if let Some(td) = lz_west {
           lz_west_string = td.text().collect::<String>();
         }  
-     }
+     
+        ercot_data.push(ErcotData { 
+            lz_houston: lz_houston_string, 
+            lz_south: lz_south_string, 
+            lz_north: lz_north_string, 
+            lz_west: lz_west_string,
+         });
+     
+      }
+
+      println!("{:#?}", ercot_data); // testing to make sure all data is being stored properly 
+
+   
 
      //store data
 
-      // After reading docs for serde and CSV, I realize the headers don't need 
-      // to be extraced and #[serde(rename = "name")] will rename the fields when 
-     // serialized to CSV
+    
 
     //Prepare the output
 
