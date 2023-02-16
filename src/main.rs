@@ -10,10 +10,10 @@ const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html"
 
 #[derive(Debug, PartialEq)]
 struct ErcotData {
-    lz_houston: f32,
-    lz_south: f32,
-    lz_north: f32,
-    lz_west: f32,
+    lz_houston: String,
+    lz_south: String,
+    lz_north: String,
+    lz_west: String,
 }
 
 
@@ -29,31 +29,61 @@ fn main() -> Result<(), Box<dyn Error>> {
     //Parse the data
     let document = scraper::Html::parse_document(&response);
 
-    // iterate over each `tr` element
-    for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
-    let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next();
-    let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();
-    let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next();
-    let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next();
+    // Initialize variables to be looped through
+    let mut lz_houston = String::new(); 
+    let mut lz_south = String::new();
+    let mut lz_north = String::new();
+    let mut_lz_west = String::new();
     
-    // test
+    // Iterate thorugh "td" elements to collect lz data points
+    
+    for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
+    let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next(); 
+    let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();  
+    let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next(); 
+    let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next(); 
+    
+    
     if let Some(td) = lz_houston {
-    println!("{}", td.text().collect::<String>()); //test
-    }
+      println!("{}", td.text().collect::<String>()); //test
+      }
+
+      println!("lz_houston"); //test
+
+    if let Some(td) = lz_south {
+      println!("{}", td.text().collect::<String>()); //test
+      }
+
+      println!("lz_south"); //test
+
+    if let Some(td) = lz_north {
+      println!("{}", td.text().collect::<String>()); //test
+      } 
+
+      println!("lz_north"); //test
+
+    if let Some(td) = lz_west {
+         println!("{}", td.text().collect::<String>()); //test
+      }
+
+      println!("lz_west"); //test
+
     }    
+
+    
 
                  //LZ_HOUSTON Header
 
-    let selector = Selector::parse("th.headerValueClass").unwrap();  
-    let element = document.select(&selector)
+    let houston_header = Selector::parse("th.headerValueClass").unwrap();  
+    let element = document.select(&houston_header)
       .find(|th| th.text().collect::<String>() == "LZ_HOUSTON");
 
     println!("{:?}", element.unwrap().text().collect::<String>()); //test 
 
                  //LZ_SOUTH Header
 
-    let selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&selector)
+    let south_selector = Selector::parse("th.headerValueClass").unwrap();
+    let element = document.select(&south_selector)
     .find(|th| th.text().collect::<String>() == "LZ_SOUTH");
 
     println!("{:?}", element.unwrap().text().collect::<String>()); //test 
@@ -61,8 +91,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
                 //LZ_NORTH Header
 
-    let selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&selector)
+    let north_selector = Selector::parse("th.headerValueClass").unwrap();
+    let element = document.select(&north_selector)
     .find(|th| th.text().collect::<String>() == "LZ_NORTH");
 
     println!("{:?}", element.unwrap().text().collect::<String>()); //test 
@@ -70,8 +100,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 
                  //LZ_WEST Header
 
-    let selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&selector)
+    let west_selector = Selector::parse("th.headerValueClass").unwrap();
+    let element = document.select(&west_selector)
     .find(|th| th.text().collect::<String>() == "LZ_WEST");
 
     println!("{:?}", element.unwrap().text().collect::<String>()); //test 
