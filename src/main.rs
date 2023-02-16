@@ -4,8 +4,7 @@ use csv::Writer;
 use scraper::{Html, Selector};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-
-const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
+use chrono::{Utc, TimeZone, Duration, Local, FixedOffset};
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -24,9 +23,11 @@ struct ErcotData {
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Start");
 
+    let url = ercot_dynamic_url();
+
      // Get Response from ERCOT
     let client = Client::new();
-    let response = client.get(URL)
+    let response = client.get(&url)
         .send()?
         .text()?;
     
@@ -100,4 +101,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("end");
     Ok(())
+}
+
+fn ercot_dynamic_url() -> String {
+    let utc_now = Utc::now();
+    let utc_tomorrow = utc_now + Duration::days(1);
+    let date_string = utc_tomorrow.format("%Y%m%d").to_string();
+    format!("https://www.ercot.com/content/cdr/html/{}_dam_spp.html", date_string)
 }
