@@ -8,11 +8,15 @@ use serde::Deserialize;
 const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 struct ErcotData {
+    #[serde(rename = "LZ_HOUSTON")]   // rename the fields to match html data
     lz_houston: String,
+    #[serde(rename = "LZ_SOUTH")]
     lz_south: String,
+    #[serde(rename = "LZ_NORTH")]
     lz_north: String,
+    #[serde(rename = "LZ_WEST")]
     lz_west: String,
 }
 
@@ -46,72 +50,32 @@ fn main() -> Result<(), Box<dyn Error>> {
         
         //create new variable to store data as string
         
-        let mut lz_houston_string = String::new();
+        let mut lz_houston_string = String::new();   
         if let Some(td) = lz_houston {
          lz_houston_string = td.text().collect::<String>();
-
-        println!("{}", lz_houston_string); //test
         }
 
         let mut lz_south_string = String::new();
         if let Some(td) = lz_south {
          lz_south_string = td.text().collect::<String>();
-
-        println!("{}", lz_south_string); //test
         }
 
         let mut lz_north_string = String::new();
         if let Some(td) = lz_north {
          lz_north_string = td.text().collect::<String>();
-
-        println!("{}", lz_north_string); //test
         }
 
         let mut lz_west_string = String::new();
         if let Some(td) = lz_west {
           lz_west_string = td.text().collect::<String>();
-
-        println!("{}", lz_west_string); //test
-      }  
+        }  
      }
 
-    
+     //store data
 
-                 //LZ_HOUSTON Header
-
-    let houston_header = Selector::parse("th.headerValueClass").unwrap();  
-    let element = document.select(&houston_header)
-      .find(|th| th.text().collect::<String>() == "LZ_HOUSTON");
-
-    println!("{:?}", element.unwrap().text().collect::<String>()); //test 
-
-                 //LZ_SOUTH Header
-
-    let south_selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&south_selector)
-    .find(|th| th.text().collect::<String>() == "LZ_SOUTH");
-
-    println!("{:?}", element.unwrap().text().collect::<String>()); //test 
-     
-
-                //LZ_NORTH Header
-
-    let north_selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&north_selector)
-    .find(|th| th.text().collect::<String>() == "LZ_NORTH");
-
-    println!("{:?}", element.unwrap().text().collect::<String>()); //test 
-     
-                
-                 //LZ_WEST Header
-
-    let west_selector = Selector::parse("th.headerValueClass").unwrap();
-    let element = document.select(&west_selector)
-    .find(|th| th.text().collect::<String>() == "LZ_WEST");
-
-    println!("{:?}", element.unwrap().text().collect::<String>()); //test 
-             
-    //Store data
+      // After reading docs for serde and CSV, I realize the headers don't need 
+      // to be extraced and #[serde(rename = "name")] will rename the fields when 
+     // serialized to CSV
 
     //Prepare the output
 
