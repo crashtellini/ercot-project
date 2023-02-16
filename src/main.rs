@@ -38,37 +38,42 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Iterate thorugh "td" elements to collect lz data points
     
     for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
-    let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next(); 
-    let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();  
-    let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next(); 
-    let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next(); 
+        let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next(); 
+        let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();  
+        let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next(); 
+        let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next(); 
     
-    
-    if let Some(td) = lz_houston {
-      println!("{}", td.text().collect::<String>()); //test
-      }
+        
+        //create new variable to store data as string
+        
+        let mut lz_houston_string = String::new();
+        if let Some(td) = lz_houston {
+         lz_houston_string = td.text().collect::<String>();
 
-      println!("lz_houston"); //test
+        println!("{}", lz_houston_string); //test
+        }
 
-    if let Some(td) = lz_south {
-      println!("{}", td.text().collect::<String>()); //test
-      }
+        let mut lz_south_string = String::new();
+        if let Some(td) = lz_south {
+         lz_south_string = td.text().collect::<String>();
 
-      println!("lz_south"); //test
+        println!("{}", lz_south_string); //test
+        }
 
-    if let Some(td) = lz_north {
-      println!("{}", td.text().collect::<String>()); //test
-      } 
+        let mut lz_north_string = String::new();
+        if let Some(td) = lz_north {
+         lz_north_string = td.text().collect::<String>();
 
-      println!("lz_north"); //test
+        println!("{}", lz_north_string); //test
+        }
 
-    if let Some(td) = lz_west {
-         println!("{}", td.text().collect::<String>()); //test
-      }
+        let mut lz_west_string = String::new();
+        if let Some(td) = lz_west {
+          lz_west_string = td.text().collect::<String>();
 
-      println!("lz_west"); //test
-
-    }    
+        println!("{}", lz_west_string); //test
+      }  
+     }
 
     
 
