@@ -64,13 +64,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Write the data to a CSV file
     let file_path = CSV_FILE_NAME;
     write_to_csv(&ercot_data, file_path).expect("Failed to write to CSV");
-      
+    
     println!("end");
     Ok(())
 }
 
 // dynamically construct the url based on if the current time is before or after 20:00 UTC
-
 fn ercot_dynamic_url() -> String {
     let now = Utc::now();
     let market_open_time = Utc.from_utc_datetime(&now.naive_utc().date().and_time(NaiveTime::from_hms_opt(20, 0, 0).unwrap()));
