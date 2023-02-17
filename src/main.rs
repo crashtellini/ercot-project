@@ -1,13 +1,14 @@
+#![allow(warnings)]
 use std::{error::Error, thread::current};
 use std::fs::File;
 use csv::Writer;
 use scraper::{Html, Selector};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use chrono::{DateTime, Datelike, Duration, NaiveTime, TimeZone, Utc};
+use chrono::{NaiveTime, TimeZone, Utc};
 
-const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
-
+const ERCOT_BASE_URL: &str = "https://www.ercot.com/content/cdr/html/";
+const CSV_FILE_NAME: &str = "ercot_data.csv";
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct ErcotData {
@@ -20,60 +21,33 @@ struct ErcotData {
     #[serde(rename = "LZ_WEST")]
     lz_west: String,
 }
-
-
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Start");
+    println!("Initializing Ercot HTML Scraper");
 
-     // Get Response from ERCOT
+     // Get Request
     let client = Client::new();
     let response = client.get(ercot_dynamic_url())
         .send()?
         .text()?;
-
-    println!("{}", ercot_dynamic_url());
     
-    //Parse the data
+    //Parse Response
     let document = scraper::Html::parse_document(&response);
-
-    // Initialize variables to be looped through
-    let mut lz_houston = String::new(); 
-    let mut lz_south = String::new();
-    let mut lz_north = String::new();
-    let mut lz_west = String::new();
-    
     
     let mut ercot_data = Vec::new();
 
-    // Iterate thorugh "td" elements to collect lz data points
+    // Iterate thorugh "td" elements to collect lz data points    
     for row in document.select(&scraper::Selector::parse("tr").unwrap()) {
-        let lz_houston = row.select(&scraper::Selector::parse("td:nth-child(12)").unwrap()).next(); 
-        let lz_south = row.select(&scraper::Selector::parse("td:nth-child(16)").unwrap()).next();  
-        let lz_north = row.select(&scraper::Selector::parse("td:nth-child(14)").unwrap()).next(); 
-        let lz_west = row.select(&scraper::Selector::parse("td:nth-child(17)").unwrap()).next(); 
+        let lz_houston = select_cell("td:nth-child(12)", &row);  //returns theth element of html 
+        let lz_south = select_cell("td:nth-child(16)", &row);
+        let lz_north = select_cell("td:nth-child(14)", &row);
+        let lz_west = select_cell("td:nth-child(17)", &row);
         
-        //create new variable to store data as string
+        // create new variable to store data as string
+        let lz_houston_string = extract_text(lz_houston);
+        let lz_south_string = extract_text(lz_south);
+        let lz_north_string = extract_text(lz_north);
+        let lz_west_string = extract_text(lz_west);
         
-        let mut lz_houston_string = String::new();   
-        if let Some(td) = lz_houston {
-         lz_houston_string = td.text().collect::<String>();
-        }
-
-        let mut lz_south_string = String::new();
-        if let Some(td) = lz_south {
-         lz_south_string = td.text().collect::<String>();
-        }
-
-        let mut lz_north_string = String::new();
-        if let Some(td) = lz_north {
-         lz_north_string = td.text().collect::<String>();
-        }
-
-        let mut lz_west_string = String::new();
-        if let Some(td) = lz_west {
-          lz_west_string = td.text().collect::<String>();
-        }  
-         
          // If all data points are empty strings, skip the row
         if lz_houston_string.is_empty() && lz_south_string.is_empty() && lz_north_string.is_empty() && lz_west_string.is_empty() {
             continue;
@@ -85,29 +59,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             lz_north: lz_north_string, 
             lz_west: lz_west_string,
          });
-     
       }
 
-      
     // Write the data to a CSV file
-   
-    let file = File::create("output.csv")?;
-    let mut writer = Writer::from_writer(file);
-
-    // Write the data rows
-    for data in ercot_data {
-    writer.serialize(data)?;
-    }
-
-    writer.flush()?;
-
+    let file_path = CSV_FILE_NAME;
+    write_to_csv(&ercot_data, file_path).expect("Failed to write to CSV");
+      
     println!("end");
     Ok(())
 }
 
-// dynamically construct the url based on if the current time is before or after 14:00 UTC
-
-
+// dynamically construct the url based on if the current time is before or after 20:00 UTC
 
 fn ercot_dynamic_url() -> String {
     let now = Utc::now();
@@ -117,12 +79,32 @@ fn ercot_dynamic_url() -> String {
     } else {
         now.naive_utc().date().format("%Y%m%d").to_string()
     };
-    format!("https://www.ercot.com/content/cdr/html/{}_dam_spp.html", current_date)
+    format!("{}{}_dam_spp.html", ERCOT_BASE_URL, current_date)
 }
 
+fn extract_text(td: Option<scraper::ElementRef>) -> String {
+    if let Some(td) = td {
+        td.text().collect::<String>()
+    } else {
+        String::new()
+    }
+}
 
+fn select_cell<'a>(selector: &'a str, row: &'a scraper::ElementRef<'a>) -> Option<scraper::ElementRef<'a>> {
+    row.select(&scraper::Selector::parse(selector).unwrap()).next()
+}
 
+fn write_to_csv<T: Serialize>(data: &[T], file_path: &str) -> Result<(), Box<dyn Error>> {
+    let file = File::create(file_path)?;
+    let mut writer = Writer::from_writer(file);
+    
+    for data_row in data {
+        writer.serialize(data_row)?;
+    }
 
+    writer.flush()?;
+    Ok(())
+}
 
 //checks if the URL generated matches the expected format
 //It also checks if the length of the generated URL matches the length of the expected format string
