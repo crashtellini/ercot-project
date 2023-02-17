@@ -1,10 +1,12 @@
-use std::error::Error;
+use std::{error::Error, thread::current};
 use std::fs::File;
 use csv::Writer;
 use scraper::{Html, Selector};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use chrono::{Utc, TimeZone, Duration, Local, FixedOffset};
+use chrono::{DateTime, Datelike, Duration, NaiveTime, TimeZone, Utc};
+
+const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -23,13 +25,13 @@ struct ErcotData {
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Start");
 
-    let url = ercot_dynamic_url();
-
      // Get Response from ERCOT
     let client = Client::new();
-    let response = client.get(&url)
+    let response = client.get(ercot_dynamic_url())
         .send()?
         .text()?;
+
+    println!("{}", ercot_dynamic_url());
     
     //Parse the data
     let document = scraper::Html::parse_document(&response);
@@ -103,9 +105,43 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// dynamically construct the url based on if the current time is before or after 14:00 UTC
+
+
+
 fn ercot_dynamic_url() -> String {
-    let utc_now = Utc::now();
-    let utc_tomorrow = utc_now + Duration::days(1);
-    let date_string = utc_tomorrow.format("%Y%m%d").to_string();
-    format!("https://www.ercot.com/content/cdr/html/{}_dam_spp.html", date_string)
+    let now = Utc::now();
+    let market_open_time = Utc.from_utc_datetime(&now.naive_utc().date().and_time(NaiveTime::from_hms_opt(20, 0, 0).unwrap()));
+    let current_date = if now >= market_open_time {
+        now.naive_utc().date().succ().format("%Y%m%d").to_string()
+    } else {
+        now.naive_utc().date().format("%Y%m%d").to_string()
+    };
+    format!("https://www.ercot.com/content/cdr/html/{}_dam_spp.html", current_date)
+}
+
+
+
+
+
+//checks if the URL generated matches the expected format
+//It also checks if the length of the generated URL matches the length of the expected format string
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ercot_dynamic_url() {
+        let url = ercot_dynamic_url();
+        let expected_url_format = "https://www.ercot.com/content/cdr/html/YYYYMMDD_dam_spp.html";
+        assert!(
+            url.starts_with("https://www.ercot.com/content/cdr/html/"),
+            "URL format is incorrect"
+        );
+        assert!(
+            url.ends_with("_dam_spp.html"),
+            "URL format is incorrect"
+        );
+        assert_eq!(url.len(), expected_url_format.len(), "URL format is incorrect");
+    }
 }
