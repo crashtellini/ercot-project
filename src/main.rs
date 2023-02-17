@@ -6,8 +6,6 @@ use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Datelike, Duration, NaiveTime, TimeZone, Utc};
 
-const URL: &str = "https://www.ercot.com/content/cdr/html/20230213_dam_spp.html";
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 struct ErcotData {
@@ -41,7 +39,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut lz_south = String::new();
     let mut lz_north = String::new();
     let mut lz_west = String::new();
-    
     
     let mut ercot_data = Vec::new();
 
@@ -85,7 +82,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             lz_north: lz_north_string, 
             lz_west: lz_west_string,
          });
-     
       }
 
       
@@ -93,21 +89,17 @@ fn main() -> Result<(), Box<dyn Error>> {
    
     let file = File::create("output.csv")?;
     let mut writer = Writer::from_writer(file);
-
-    // Write the data rows
+    
     for data in ercot_data {
     writer.serialize(data)?;
     }
 
     writer.flush()?;
-
     println!("end");
     Ok(())
 }
 
-// dynamically construct the url based on if the current time is before or after 14:00 UTC
-
-
+// dynamically construct the url based on if the current time is before or after 20:00 UTC
 
 fn ercot_dynamic_url() -> String {
     let now = Utc::now();
@@ -119,9 +111,6 @@ fn ercot_dynamic_url() -> String {
     };
     format!("https://www.ercot.com/content/cdr/html/{}_dam_spp.html", current_date)
 }
-
-
-
 
 
 //checks if the URL generated matches the expected format
